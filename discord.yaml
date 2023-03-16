@@ -1,11 +1,14 @@
 ---
-- name: Test Discord integration
+- name: Test d'intégration Discord
   hosts: localhost
+  gather_facts: false
+
   tasks:
-    - name: Send notification to Discord
+    - name: Envoyer un message sur un serveur Discord
       uri:
-        url: "https://discord.com/api/webhooks/1083319647652286475/VR7uONh49zSXTPHV5ysr7SaTiN1wNtdoKXBaSTydUfD4J60k6lz39NOolSTf-DXMobae"
+        url: https://discord.com/api/webhooks/1083319647652286475/VR7uONh49zSXTPHV5ysr7SaTiN1wNtdoKXBaSTydUfD4J60k6lz39NOolSTf-DXMobae
         method: POST
-        body_format: json
-        body:
-          content: "Test notification"
+        headers:
+          "Content-Type": "application/json"
+        body: '{"content": "Test d\'intégration Discord réussi !"}'
+        status_code: 204
