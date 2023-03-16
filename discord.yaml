@@ -1,0 +1,11 @@
+---
+- name: Test Discord integration
+  hosts: localhost
+  tasks:
+    - name: Send notification to Discord
+      uri:
+        url: "https://discord.com/api/webhooks/1083319647652286475/VR7uONh49zSXTPHV5ysr7SaTiN1wNtdoKXBaSTydUfD4J60k6lz39NOolSTf-DXMobae"
+        method: POST
+        body_format: json
+        body:
+          content: "Test notification"
