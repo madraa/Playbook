@@ -1,10 +1,10 @@
----
 - name: Mises à jour du système
   hosts: all
   become: yes
   gather_facts: yes
 
-- name: Mettre à jour les paquets
-  apt:
-    upgrade: dist
-    update_cache: yes
+  tasks:
+    - name: Mettre à jour les paquets
+      apt:
+        upgrade: dist
+        update_cache: yes
