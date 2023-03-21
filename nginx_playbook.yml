@@ -1,0 +1,15 @@
+---
+- name: Installer et démarrer Nginx
+  hosts: all
+  become: yes
+  tasks:
+    - name: Installer Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Démarrer le service Nginx
+      systemd:
+        name: nginx
+        state: started
