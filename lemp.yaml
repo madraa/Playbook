@@ -1,11 +1,7 @@
 ---
-- name: Déploiement de l'environnement LEMP et configuration de la sécurité du serveur
+- name: Configuration de la machine distante
   hosts: all
   become: yes
-
-  vars:
-    mysql_root_password: changeme
-    php_version: '7.4'
 
   tasks:
     - name: Mise à jour des packages
@@ -13,89 +9,26 @@
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Installation des packages nécessaires
+    - name: Installation de Nginx
       apt:
         name:
-          - ufw
-          - fail2ban
           - nginx
-          - mysql-server
-          - python3-pymysql
-          - php{{ php_version }}
-          - php{{ php_version }}-fpm
-          - php{{ php_version }}-mysql
 
-    - name: Configuration du pare-feu UFW
-      block:
-        - name: Autoriser les ports nécessaires
-          ansible.builtin.ufw:
-            rule: allow
-            port: "{{ item }}"
-            proto: tcp
-          loop:
-            - 22
-            - 80
-            - 443
+    - name: Copie du fichier de configuration de Nginx
+      copy:
+        src: /path/to/your/nginx/site.conf
+        dest: /etc/nginx/sites-available/default
+      notify: Reload nginx
 
-        - name: Activer le pare-feu UFW
-          ansible.builtin.ufw:
-            state: enabled
-      become: yes
+    - name: Activation de la configuration de Nginx
+      file:
+        src: /etc/nginx/sites-available/default
+        dest: /etc/nginx/sites-enabled/default
+        state: link
+      notify: Reload nginx
 
-    - name: Configuration de Fail2Ban
-      block:
-        - name: Installer le fichier de configuration de Fail2Ban
-          ansible.builtin.template:
-            src: /path/to/your/fail2ban/jail.local
-            dest: /etc/fail2ban/jail.local
-          notify: Restart fail2ban
-
-        - name: Activer et démarrer le service Fail2Ban
-          ansible.builtin.systemd:
-            name: fail2ban
-            state: started
-            enabled: yes
-      become: yes
-
-    - name: Configuration de Nginx
-      block:
-        - name: Supprimer la configuration par défaut de Nginx
-          ansible.builtin.file:
-            path: /etc/nginx/sites-enabled/default
-            state: absent
-          notify: Reload nginx
-
-        - name: Installer la configuration du site Nginx
-          ansible.builtin.template:
-            src: /path/to/your/nginx/site.conf
-            dest: /etc/nginx/sites-available/lemp-site.conf
-          notify: Reload nginx
-
-        - name: Activer la configuration du site Nginx
-          ansible.builtin.file:
-            src: /etc/nginx/sites-available/lemp-site.conf
-            dest: /etc/nginx/sites-enabled/lemp-site.conf
-            state: link
-          notify: Reload nginx
-
-    - name: Configuration de MySQL
-      block:
-        - name: Configurer le mot de passe root de MySQL
-          community.mysql.mysql_user:
-            name: root
-            host: localhost
-            password: "{{ mysql_root_password }}"
-            login_user: root
-            login_password: "{{ mysql_root_password }}"
-            check_implicit_admin: yes
-            priv: "*.*:ALL,GRANT"
-          no_log: yes
-
-        - name: Supprimer les utilisateurs anonymes
-          community.mysql.mysql_user:
-            name: ""
-            host: localhost
-            login_user: root
-            login_password: "{{ mysql_root_password }}"
-            state: absent
-            require_
+  handlers:
+    - name: Reload nginx
+      systemd:
+        name: nginx
+        state: restarted
